@@ -1,0 +1,55 @@
+{
+  "threshold": 4.0,
+  "candidates": [
+    {
+      "service": "ingest",
+      "start": "2026-03-02T02:24:00+00:00",
+      "end": "2026-03-02T02:26:00+00:00",
+      "peak_score": 130.68,
+      "length_min": 3,
+      "requires_human_review": true,
+      "auto_action_taken": false,
+      "recommended_next_step": "Review recent deploys and upstream health; likely transient."
+    },
+    {
+      "service": "api",
+      "start": "2026-03-01T09:36:00+00:00",
+      "end": "2026-03-01T09:39:00+00:00",
+      "peak_score": 108.91,
+      "length_min": 4,
+      "requires_human_review": true,
+      "auto_action_taken": false,
+      "recommended_next_step": "Review recent deploys and upstream health; likely transient."
+    },
+    {
+      "service": "api",
+      "start": "2026-03-02T18:14:00+00:00",
+      "end": "2026-03-02T18:18:00+00:00",
+      "peak_score": 84.56,
+      "length_min": 5,
+      "requires_human_review": true,
+      "auto_action_taken": false,
+      "recommended_next_step": "Review recent deploys and upstream health; likely transient."
+    },
+    {
+      "service": "render",
+      "start": "2026-03-02T10:33:00+00:00",
+      "end": "2026-03-02T11:17:00+00:00",
+      "peak_score": 36.96,
+      "length_min": 45,
+      "requires_human_review": true,
+      "auto_action_taken": false,
+      "recommended_next_step": "Page on-call to confirm; sustained elevation, not a blip."
+    },
+    {
+      "service": "auth",
+      "start": "2026-03-01T16:47:00+00:00",
+      "end": "2026-03-01T17:46:00+00:00",
+      "peak_score": 34.7,
+      "length_min": 60,
+      "requires_human_review": true,
+      "auto_action_taken": false,
+      "recommended_next_step": "Page on-call to confirm; sustained elevation, not a blip."
+    }
+  ]
+}
