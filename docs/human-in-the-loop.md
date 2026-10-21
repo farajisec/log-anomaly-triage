@@ -1,44 +1,36 @@
-# Human-in-the-Loop and Guardrails
+# The human in the loop
 
-This detector is built to assist a person, not to replace one. The design
-reflects a simple rule: automated analysis can decide what to *look at*,
-but a human decides what to *do*.
+The queue decides what a person looks at. A person decides what happens.
+That split is not a disclaimer; it is enforced in three places.
 
-## What the system does and does not do
+1. **Every candidate says so.** `requires_human_review` is always true
+   and `auto_action_taken` is always false, on queued and held-out
+   candidates alike. The end-to-end test checks every one.
+2. **The package cannot act.** There is no code path to a restart, a
+   page, a rollback or a scale-out. A test greps the source for
+   `subprocess`, `socket` and `os.system` and fails if any appears.
+   The "recommended next step" is a sentence from a playbook, for a
+   person to read.
+3. **Feedback is bounded.** Verdicts move detector weights by 15 % of the
+   remaining gap per verdict, inside [0.5, 1.5], per service. A single
+   bad afternoon of clicking cannot blind a detector, and the system
+   recovers as verdicts change.
 
-- It **reads** metrics and **ranks** candidate anomalies.
-- It **recommends** a next step for each candidate.
-- It does **not** act. There is no code path that restarts a service,
-  pages anyone, files a ticket, or changes any state. Every candidate in
-  the queue is marked `requires_human_review: true` and
-  `auto_action_taken: false`, and the end-to-end test asserts that both
-  stay that way.
+What the loop gives back:
 
-## Why unsupervised, and why one-sided
+- **Calibration without code.** A detector that keeps producing noise on
+  one service loses weight on that service only.
+- **Memory.** The three most similar past verdicts ride along on each new
+  candidate. "Last time this shape appeared here, someone called it
+  noise" is the most useful line in a triage queue, and it is the one
+  automation usually forgets.
+- **Audit.** Held-out candidates are written next to the queue with the
+  reason they were held, so the decision not to show something can be
+  reviewed as easily as the decision to show it.
 
-The detector is unsupervised: it learns a per-service baseline from the
-recent past rather than from labeled training data. That keeps it honest
-about what it can claim. It has not learned "what an attack looks like";
-it has learned "what normal looks like here" and flags departures from it.
-It is one-sided on purpose, flagging elevations in error rate, because a
-drop in errors is not an incident.
+Record a verdict with:
 
-## Why a human stays in the loop
-
-An unsupervised detector will surface things that are unusual but benign: a
-planned load test, a deploy, a seasonal shift it has not seen before. The
-value is in triage, narrowing a stream of metrics down to a short ranked
-list worth a human's attention, with the context to judge quickly. Taking
-action automatically on that list would turn a useful filter into an
-unreviewed actor. The recommended next step is a prompt for the analyst,
-not an instruction to the system.
-
-## Honest limits
-
-- The baseline adapts, so a slow, sustained drift can be absorbed into
-  "normal" over time. Sudden changes are what this catches best.
-- Thresholds are set for this lab's synthetic data. Real tuning depends on
-  a service's own noise profile and the cost of a missed detection versus
-  the cost of a noisy queue.
-- The detection-latency metric assumes clean label windows. In production,
-  "when did the incident really start" is itself a judgment call.
+```bash
+triage feedback <candidate-id> incident|benign|noise --note "..."
+triage detect          # next run uses the updated weights and memory
+```
